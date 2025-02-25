@@ -40,6 +40,20 @@ function makeEmptyField() {
     }
 }
 
+function expandField() {
+    ++fieldSize;
+    for (let row of field){
+        row.push(EMPTY);
+    }
+    field.push(new Array(fieldSize).fill(EMPTY));
+    renderGrid(fieldSize);
+    for (let row = 0; row < fieldSize; ++row) {
+        for (let col = 0; col < fieldSize; ++col) {
+            renderSymbolInCell(field[row][col], row, col);
+        }
+    }
+}
+
 function checkWinner() {
     for (let row = 0; row < fieldSize; row++) {
         for (let col = 0; col <= fieldSize - fieldSize; col++) {
@@ -128,13 +142,14 @@ function cellClickHandler (row, col) {
         ++movesMade;
     }
     let winner = checkWinner();
-    console.log(winner);
     if (winner) {
         endGame = true;
         console.log(`Победил ${winner}`);
     } else if (movesMade == fieldSize * fieldSize) {
         endGame = true;
         console.log("Победила дружба");
+    } else if (movesMade > fieldSize * fieldSize / 2) {
+        expandField();
     }
 }
 
