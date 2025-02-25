@@ -175,6 +175,72 @@ function resetClickHandler () {
     startGame();
 }
 
+function findWinningMove(field, playerNow) {
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (field[i][j] === EMPTY) {
+                field[i][j] = playerNow;
+                if (checkWinner(field, playerNow)) {
+                    return [i, j];
+                }
+                field[i][j] = EMPTY;
+            }
+        }
+    }
+    return null;
+}
+
+function makeSmartMove(field) {
+    let winningMove = findWinningMove(field, ZERO);
+    if (winningMove) {
+        field[winningMove[0]][winningMove[1]] = ZERO;
+        return field;
+    }
+
+    let blockMove = findWinningMove(field, CROSS);
+    if (blockMove) {
+        field[blockMove[0]][blockMove[1]] = ZERO;
+        return field;
+    }
+
+    let emptyCells = [];
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (field[i][j] === EMPTY) {
+                emptyCells.push([i, j]);
+            }
+        }
+    }
+
+    let randomMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    field[randomMove[0]][randomMove[1]] = ZERO;
+
+    return field;
+
+}
+
+
+function aiAssistent (field) {
+    let emptyCells = [];
+
+    for (let i = 0; i < field.length; i++) {
+        for (let j = 0; j < field[i].length; j++) {
+            if (field[i][j] == EMPTY)
+                emptyCells.push([i, j]);
+        }
+        if (emptyCells.length === 0) {
+            return field;
+        }
+
+        let [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+
+        field[row][col] = ZERO;
+
+        return field
+    }
+
+}
+
 
 /* Test Function */
 /* Победа первого игрока */
