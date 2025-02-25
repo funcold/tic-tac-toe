@@ -2,56 +2,103 @@ const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
 let playerNow = CROSS;
-let field = [[EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]];
+let fieldSize = 3;
+let field = [];
 let movesMade = 0;
 let endGame = false;
 
 const container = document.getElementById('fieldWrapper');
 
+const submitButton = document.getElementById('submitButton');
+const textInput = document.getElementById('textInput');
+submitButton.addEventListener('click', function() {
+    fieldSize = +textInput.value;
+    if (isNaN(fieldSize) || fieldSize < 3) {
+        return;
+    }
+    console.log(fieldSize);
+    startGame();
+});
+
 startGame();
 addResetListener();
 
+
+
 function startGame () {
-    renderGrid(3);
+    renderGrid(fieldSize);
     playerNow = CROSS;
-    field = [[EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]];
+    makeEmptyField();
     movesMade = 0;
     endGame = false;
 }
 
+function makeEmptyField() {
+    field = [];
+    for (let i = 0; i < fieldSize; ++i) {
+        field.push(new Array(fieldSize).fill(EMPTY));
+    }
+}
+
 function checkWinner() {
-    for (let row = 0; row < 3; row++) {
-        if (field[row][0] === field[row][1] && field[row][1] === field[row][2] && field[row][0] !== EMPTY) {
-            renderSymbolInCell(field[row][0], row, 0, '#ff0000');
-            renderSymbolInCell(field[row][0], row, 1, '#ff0000');
-            renderSymbolInCell(field[row][0], row, 2, '#ff0000');
-            return field[row][0];
+    for (let row = 0; row < fieldSize; row++) {
+        for (let col = 0; col <= fieldSize - fieldSize; col++) {
+            const symbol = field[row][col];
+            if (symbol !== EMPTY && checkLine(field, symbol, row, col, 0, 1, fieldSize)) {
+                renderWinningCells(symbol, row, col, 0, 1, fieldSize);
+                return symbol;
+            }
         }
     }
 
-    for (let col = 0; col < 3; col++) {
-        if (field[0][col] === field[1][col] && field[1][col] === field[2][col] && field[0][col] !== EMPTY) {
-            renderSymbolInCell(field[0][col], 0, col, '#ff0000');
-            renderSymbolInCell(field[0][col], 1, col, '#ff0000');
-            renderSymbolInCell(field[0][col], 2, col, '#ff0000');
-            return field[0][col];
+    for (let col = 0; col < fieldSize; col++) {
+        for (let row = 0; row <= fieldSize - fieldSize; row++) {
+            const symbol = field[row][col];
+            if (symbol !== EMPTY && checkLine(field, symbol, row, col, 1, 0, fieldSize)) {
+                renderWinningCells(symbol, row, col, 1, 0, fieldSize);
+                return symbol;
+            }
         }
     }
 
-    if (field[0][0] === field[1][1] && field[1][1] === field[2][2] && field[0][0] !== EMPTY) {
-        renderSymbolInCell(field[0][0], 0, 0, '#ff0000');
-        renderSymbolInCell(field[0][0], 1, 1, '#ff0000');
-        renderSymbolInCell(field[0][0], 2, 2, '#ff0000');
-        return field[0][0];
+    for (let row = 0; row <= fieldSize - fieldSize; row++) {
+        for (let col = 0; col <= fieldSize - fieldSize; col++) {
+            const symbol = field[row][col];
+            if (symbol !== EMPTY && checkLine(field, symbol, row, col, 1, 1, fieldSize)) {
+                renderWinningCells(symbol, row, col, 1, 1, fieldSize);
+                return symbol;
+            }
+        }
     }
-    if (field[0][2] === field[1][1] && field[1][1] === field[2][0] && field[0][2] !== EMPTY) {
-        renderSymbolInCell(field[0][2], 0, 2, '#ff0000');
-        renderSymbolInCell(field[0][2], 1, 1, '#ff0000');
-        renderSymbolInCell(field[0][2], 2, 0, '#ff0000');
-        return field[0][2];
+
+    for (let row = 0; row <= fieldSize - fieldSize; row++) {
+        for (let col = fieldSize - 1; col >= fieldSize - fieldSize; col--) {
+            const symbol = field[row][col];
+            if (symbol !== EMPTY && checkLine(field, symbol, row, col, 1, -1, fieldSize)) {
+                renderWinningCells(symbol, row, col, 1, -1, fieldSize);
+                return symbol;
+            }
+        }
     }
 
     return false;
+}
+
+function checkLine(field, symbol, startRow, startCol, deltaRow, deltaCol, fieldSize) {
+    for (let i = 0; i < fieldSize; i++) {
+        if (field[startRow + i * deltaRow][startCol + i * deltaCol] !== symbol) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function renderWinningCells(symbol, startRow, startCol, deltaRow, deltaCol, fieldSize) {
+    for (let i = 0; i < fieldSize; i++) {
+        const row = startRow + i * deltaRow;
+        const col = startCol + i * deltaCol;
+        renderSymbolInCell(symbol, row, col, '#ff0000');
+    }
 }
 
 function renderGrid (dimension) {
@@ -71,7 +118,6 @@ function renderGrid (dimension) {
 
 function cellClickHandler (row, col) {
     console.log(`Clicked on cell: ${row}, ${col}`);
-    console.log(field);
     if (endGame) {
         return;
     }
@@ -86,7 +132,7 @@ function cellClickHandler (row, col) {
     if (winner) {
         endGame = true;
         console.log(`Победил ${winner}`);
-    } else if (movesMade == 9) {
+    } else if (movesMade == fieldSize * fieldSize) {
         endGame = true;
         console.log("Победила дружба");
     }
