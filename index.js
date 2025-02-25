@@ -1,14 +1,104 @@
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
+let playerNow = CROSS;
+let fieldSize = 3;
+let field = [];
+let movesMade = 0;
+let endGame = false;
 
 const container = document.getElementById('fieldWrapper');
+
+const submitButton = document.getElementById('submitButton');
+const textInput = document.getElementById('textInput');
+submitButton.addEventListener('click', function() {
+    fieldSize = +textInput.value;
+    if (isNaN(fieldSize) || fieldSize < 3) {
+        return;
+    }
+    console.log(fieldSize);
+    startGame();
+});
 
 startGame();
 addResetListener();
 
+
+
 function startGame () {
-    renderGrid(3);
+    renderGrid(fieldSize);
+    playerNow = CROSS;
+    makeEmptyField();
+    movesMade = 0;
+    endGame = false;
+}
+
+function makeEmptyField() {
+    field = [];
+    for (let i = 0; i < fieldSize; ++i) {
+        field.push(new Array(fieldSize).fill(EMPTY));
+    }
+}
+
+function checkWinner() {
+    for (let row = 0; row < fieldSize; row++) {
+        for (let col = 0; col <= fieldSize - fieldSize; col++) {
+            const symbol = field[row][col];
+            if (symbol !== EMPTY && checkLine(field, symbol, row, col, 0, 1, fieldSize)) {
+                renderWinningCells(symbol, row, col, 0, 1, fieldSize);
+                return symbol;
+            }
+        }
+    }
+
+    for (let col = 0; col < fieldSize; col++) {
+        for (let row = 0; row <= fieldSize - fieldSize; row++) {
+            const symbol = field[row][col];
+            if (symbol !== EMPTY && checkLine(field, symbol, row, col, 1, 0, fieldSize)) {
+                renderWinningCells(symbol, row, col, 1, 0, fieldSize);
+                return symbol;
+            }
+        }
+    }
+
+    for (let row = 0; row <= fieldSize - fieldSize; row++) {
+        for (let col = 0; col <= fieldSize - fieldSize; col++) {
+            const symbol = field[row][col];
+            if (symbol !== EMPTY && checkLine(field, symbol, row, col, 1, 1, fieldSize)) {
+                renderWinningCells(symbol, row, col, 1, 1, fieldSize);
+                return symbol;
+            }
+        }
+    }
+
+    for (let row = 0; row <= fieldSize - fieldSize; row++) {
+        for (let col = fieldSize - 1; col >= fieldSize - fieldSize; col--) {
+            const symbol = field[row][col];
+            if (symbol !== EMPTY && checkLine(field, symbol, row, col, 1, -1, fieldSize)) {
+                renderWinningCells(symbol, row, col, 1, -1, fieldSize);
+                return symbol;
+            }
+        }
+    }
+
+    return false;
+}
+
+function checkLine(field, symbol, startRow, startCol, deltaRow, deltaCol, fieldSize) {
+    for (let i = 0; i < fieldSize; i++) {
+        if (field[startRow + i * deltaRow][startCol + i * deltaCol] !== symbol) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function renderWinningCells(symbol, startRow, startCol, deltaRow, deltaCol, fieldSize) {
+    for (let i = 0; i < fieldSize; i++) {
+        const row = startRow + i * deltaRow;
+        const col = startCol + i * deltaCol;
+        renderSymbolInCell(symbol, row, col, '#ff0000');
+    }
 }
 
 function renderGrid (dimension) {
@@ -27,13 +117,25 @@ function renderGrid (dimension) {
 }
 
 function cellClickHandler (row, col) {
-    // Пиши код тут
     console.log(`Clicked on cell: ${row}, ${col}`);
-
-
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
+    if (endGame) {
+        return;
+    }
+    if (field[row][col] === EMPTY) {
+        renderSymbolInCell(playerNow, row, col);
+        field[row][col] = playerNow;
+        playerNow = playerNow == CROSS ? ZERO : CROSS;
+        ++movesMade;
+    }
+    let winner = checkWinner();
+    console.log(winner);
+    if (winner) {
+        endGame = true;
+        console.log(`Победил ${winner}`);
+    } else if (movesMade == fieldSize * fieldSize) {
+        endGame = true;
+        console.log("Победила дружба");
+    }
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
@@ -55,6 +157,7 @@ function addResetListener () {
 
 function resetClickHandler () {
     console.log('reset!');
+    startGame();
 }
 
 function findWinningMove(field, playerNow) {
