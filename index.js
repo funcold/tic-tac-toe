@@ -141,6 +141,10 @@ function cellClickHandler (row, col) {
         playerNow = playerNow == CROSS ? ZERO : CROSS;
         ++movesMade;
     }
+    updateGameState();
+}
+
+function updateGameState() {
     let winner = checkWinner();
     if (winner) {
         endGame = true;
@@ -220,7 +224,7 @@ function makeSmartMove(field) {
 }
 
 
-function aiAssistent (field) {
+function makeAssistentMove (field) {
     let emptyCells = [];
 
     for (let i = 0; i < field.length; i++) {
